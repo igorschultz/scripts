@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 key pair name
+
+Resources:
+  DomainControllerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.medium
+      ImageId: ami-0258aac7f0f62500f # Specify your AMI ID for Windows Server
+      DisableApiTermination: 'false'
+      AvailabilityZone: us-west-2a
+      InstanceInitiatedShutdownBehavior: stop
+      PrivateIpAddress: 10.0.130.35
+      KeyName: 
+        Ref: KeyName
+      NetworkInterfaces:
+        - DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: subnet-023e01944fca182ae
+          GroupSet:
+          - sg-0da3173bb7d01c99d
+      UserData:
+        Fn::Base64: !Sub |
+          <powershell>
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/install-adds.ps1 -OutFile "C:\Downloads\scripts\install-adds.ps1"
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/add-userDomain.ps1 -OutFile "C:\Downloads\scripts\add-userDomain.ps1"
+          Invoke-Expression -Command "C:\Downloads\scripts\install-adds.ps1"
+          Invoke-Expression -Command "C:\Downloads\scripts\add-userDomain.ps1"
+          </powershell>
+      Tags:
+        - Key: Name
+          Value: DomainControllerInstance
+        - Key: CreatedBy
+          Value: igors
+
+  MemberInstance:
+    Type: AWS::EC2::Instance
+    DependsOn:
+         - DomainControllerInstance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0258aac7f0f62500f # Specify your AMI ID for Windows Server
+      AvailabilityZone: us-west-2a
+      KeyName: 
+        Ref: KeyName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'true'
+          DeleteOnTermination: 'true'
+          Description: Primary network interface
+          DeviceIndex: 0
+          SubnetId: subnet-078459c493767d802
+          GroupSet:
+          - sg-08b0a512e590a5d2a
+      UserData:
+        Fn::Base64: !Sub |
+          <powershell>
+          $scriptPath = "C:\Downloads\scripts\add-computerDomain.ps1"
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/add-computerDomain.ps1 -OutFile $scriptPath
+          Invoke-Expression -Command $scriptPath
+          </powershell>
+      Tags:
+        - Key: Name
+          Value: MemberInstance
+        - Key: CreatedBy
+          Value: igors

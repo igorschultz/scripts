@@ -1,0 +1,2 @@
+Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+Install-ADDSForest -DomainName igorlab.local -DomainNetbiosName igorlab -SafeModeAdministratorPassword (ConvertTo-SecureString -String 'Trend@123' -AsPlainText -Force)
