@@ -13,11 +13,11 @@ Resources:
       DisableApiTermination: 'false'
       AvailabilityZone: us-west-2a
       InstanceInitiatedShutdownBehavior: stop
-      PrivateIpAddress: 10.0.130.35
       KeyName: 
         Ref: KeyName
       NetworkInterfaces:
         - DeleteOnTermination: 'true'
+          PrivateIpAddress: 10.0.130.35
           Description: Primary network interface
           DeviceIndex: 0
           SubnetId: subnet-023e01944fca182ae
@@ -26,10 +26,11 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           <powershell>
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/install-adds.ps1 -OutFile "C:\Downloads\scripts\install-adds.ps1"
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/add-userDomain.ps1 -OutFile "C:\Downloads\scripts\add-userDomain.ps1"
-          Invoke-Expression -Command "C:\Downloads\scripts\install-adds.ps1"
-          Invoke-Expression -Command "C:\Downloads\scripts\add-userDomain.ps1"
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/install-adds.ps1 -OutFile "C:\install-adds.ps1"
+          Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/add-userDomain.ps1 -OutFile "C:\add-userDomain.ps1"
+          Invoke-Expression -Command "& 'C:\install-adds.ps1'" -Confirm:$false
+          Invoke-Expression -Command "C:\add-userDomain.ps1" -Confirm:$false
           </powershell>
       Tags:
         - Key: Name
@@ -42,7 +43,7 @@ Resources:
     DependsOn:
          - DomainControllerInstance
     Properties:
-      InstanceType: t2.micro
+      InstanceType: t2.medium
       ImageId: ami-0258aac7f0f62500f # Specify your AMI ID for Windows Server
       AvailabilityZone: us-west-2a
       KeyName: 
@@ -58,8 +59,9 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           <powershell>
-          $scriptPath = "C:\Downloads\scripts\add-computerDomain.ps1"
+          $scriptPath = "C:\add-computerDomain.ps1"
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/add-computerDomain.ps1 -OutFile $scriptPath
+          Set-DnsClientServerAddress -InterfaceIndex (Get-NetAdapter).InterfaceIndex -ServerAddresses "10.0.130.35"
           Invoke-Expression -Command $scriptPath
           </powershell>
       Tags:

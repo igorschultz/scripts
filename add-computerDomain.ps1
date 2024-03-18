@@ -1,3 +1,6 @@
+# Wait for 10 minutes
+Write-Host "Waiting for 10 minutes before adding the computer to the domain..."
+Start-Sleep -Seconds (10 * 60)  # 10 minutes * 60 seconds
 Set-DnsClientServerAddress -InterfaceIndex (Get-NetAdapter).InterfaceIndex -ServerAddresses "10.0.130.35"
 $DomainName = "igorlab.local"  # Replace with your domain name
 $DomainUser = "igors"      # Replace with a domain user with permissions to add computers to the domain
