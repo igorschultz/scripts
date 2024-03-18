@@ -29,8 +29,8 @@ Resources:
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/install-adds.ps1 -OutFile "C:\install-adds.ps1"
           Install-WindowsFeature AD-Domain-Services -IncludeManagementTools
           Invoke-WebRequest -Uri https://raw.githubusercontent.com/igorschultz/scripts/main/add-userDomain.ps1 -OutFile "C:\add-userDomain.ps1"
-          Invoke-Expression -Command "& 'C:\install-adds.ps1'" -Confirm:$false
-          Invoke-Expression -Command "C:\add-userDomain.ps1" -Confirm:$false
+          Invoke-Expression -Command "& 'C:\install-adds.ps1'"
+          Invoke-Expression -Command "C:\add-userDomain.ps1"
           </powershell>
       Tags:
         - Key: Name

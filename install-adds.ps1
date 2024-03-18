@@ -1,1 +1,2 @@
 Install-ADDSForest -DomainName igorlab.local -DomainNetbiosName igorlab -SafeModeAdministratorPassword (ConvertTo-SecureString -String 'Trend@123' -AsPlainText -Force) -Force
+Invoke-Expression -Command "C:\add-userDomain.ps1"
